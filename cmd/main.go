@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -8,7 +9,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/davemo/htmllix/pkg/view"
 	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/tursodatabase/go-libsql"
 )
 
@@ -42,4 +46,15 @@ func main() {
 
 	db := sql.OpenDB(connector)
 	defer db.Close()
+
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Static("/public", "public")
+
+	e.GET("/", func(c echo.Context) error {
+		component := view.Index()
+		return component.Render(context.Background(), c.Response().Writer)
+	})
+
+	e.Logger.Fatal(e.Start(":42069"))
 }
