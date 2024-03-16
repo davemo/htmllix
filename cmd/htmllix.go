@@ -27,6 +27,11 @@ func main() {
 	authToken := os.Getenv("DB_AUTH_TOKEN")
 	serverPort := os.Getenv("SERVER_PORT")
 
+	clerkEnv := view.ClerkEnv{
+		PublishableKey: os.Getenv("CLERK_PUBLISHABLE_KEY"),
+		FrontendApi: os.Getenv("CLERK_FRONTEND_API"),
+	}
+
 	dir, err := os.MkdirTemp("", "libsql-*")
 	if err != nil {
 		fmt.Println("Error creating temporary directory", err)
@@ -53,7 +58,7 @@ func main() {
 
 	e.GET("/", func(c echo.Context) error {
 		index := view.Index()
-		layout := view.Layout(index)
+		layout := view.Layout(index, clerkEnv)
 		return layout.Render(context.Background(), c.Response().Writer)
 	})
 

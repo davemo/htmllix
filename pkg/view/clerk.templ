@@ -1,0 +1,16 @@
+package view
+
+script ClerkSdkSnippet(publishableKey string, frontendApi string) {
+    const version = '@latest';
+
+    const script = document.createElement('script');
+    script.setAttribute('data-clerk-frontend-api', frontendApi);
+    script.setAttribute('data-clerk-publishable-key', publishableKey);
+    script.async = true;
+    script.src = `https://${frontendApi}/npm/@clerk/clerk-js${version}/dist/clerk.browser.js`;
+
+    script.addEventListener('load', async function () {
+        await window.Clerk.load({});
+    });
+    document.body.appendChild(script);
+}

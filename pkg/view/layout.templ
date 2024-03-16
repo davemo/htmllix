@@ -1,6 +1,11 @@
 package view
 
-templ Layout(content templ.Component) {
+type ClerkEnv struct {
+	PublishableKey string
+	FrontendApi string
+}
+
+templ Layout(content templ.Component, clerkEnv ClerkEnv) {
     <!DOCTYPE html>
     <html lang="en">
         <head>
@@ -23,5 +28,6 @@ templ Layout(content templ.Component) {
                 </div>
             </div>
         </body>
+        @ClerkSdkSnippet(clerkEnv.PublishableKey, clerkEnv.FrontendApi);
     </html>
 }
