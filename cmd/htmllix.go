@@ -26,6 +26,7 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	primaryUrl := os.Getenv("DB_URL")
 	authToken := os.Getenv("DB_AUTH_TOKEN")
+	serverPort := os.Getenv("SERVER_PORT")
 
 	dir, err := os.MkdirTemp("", "libsql-*")
 	if err != nil {
@@ -57,5 +58,5 @@ func main() {
 		return layout.Render(context.Background(), c.Response().Writer)
 	})
 
-	e.Logger.Fatal(e.Start(":42069"))
+	e.Logger.Fatal(e.Start(serverPort))
 }
