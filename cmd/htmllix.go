@@ -49,7 +49,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
-	e.Static("/public", "public")
+	// e.Static("/public", "public")
 
 	e.GET("/", func(c echo.Context) error {
 		index := view.Index()
