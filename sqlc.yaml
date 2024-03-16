@@ -5,8 +5,8 @@ sql:
     schema: './db/schema.sql'
     gen:
       go:
-        package: 'sqlc'
-        out: 'sqlc'
+        package: 'db'
+        out: 'pkg/db'
         emit_interface: false
         emit_json_tags: true
         omit_unused_structs: true
