@@ -16,7 +16,6 @@ import (
 	"github.com/tursodatabase/go-libsql"
 )
 
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
