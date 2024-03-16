@@ -52,8 +52,9 @@ func main() {
 	e.Static("/public", "public")
 
 	e.GET("/", func(c echo.Context) error {
-		component := view.Index()
-		return component.Render(context.Background(), c.Response().Writer)
+		index := view.Index()
+		layout := view.Layout(index)
+		return layout.Render(context.Background(), c.Response().Writer)
 	})
 
 	e.Logger.Fatal(e.Start(":42069"))
