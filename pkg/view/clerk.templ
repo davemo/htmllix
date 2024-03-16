@@ -1,5 +1,11 @@
 package view
 
+type ClerkEnv struct {
+	PublishableKey string
+	SecretKey string
+	FrontendApi string
+}
+
 script ClerkSdkSnippet(publishableKey string, frontendApi string) {
     const version = '@5.0.0-beta.34';
 
