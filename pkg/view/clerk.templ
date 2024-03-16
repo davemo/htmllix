@@ -14,3 +14,11 @@ script ClerkSdkSnippet(publishableKey string, frontendApi string) {
     });
     document.body.appendChild(script);
 }
+
+script SignIn() {
+    Clerk.openSignIn();
+}
+
+script SignUp() {
+    Clerk.openSignUp();
+}

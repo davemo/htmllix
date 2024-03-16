@@ -4,19 +4,19 @@ templ Index() {
     <div class="h-full flex flex-col items-center pt-20 bg-slate-900">
         <div class="space-y-4 max-w-md text-lg text-slate-300">
             <div class="flex w-full justify-evenly max-w-md mt-8 rounded-3xl p-10 bg-slate-800">
-              <a
-                href="/signup"
+              <button
+                onClick={SignUp()}
                 class="text-xl font-medium text-brand-aqua underline"
               >
                 Sign up
-              </a>
+              </button>
               <div class="h-full border-r border-slate-500" />
-              <a
-                href="/login"
+              <button
+                onClick={SignIn()}
                 class="text-xl font-medium text-brand-aqua underline"
               >
                 Sign in
-              </a>
+              </button>
             </div>
         </div>
     </div>
