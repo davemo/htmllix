@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/tursodatabase/go-libsql"
@@ -30,8 +31,9 @@ func main() {
 	defer os.RemoveAll(dir)
 
 	dbPath := filepath.Join(dir, dbName)
+	syncInterval := time.Minute
 
-	connector, err := libsql.NewEmbeddedReplicaConnector(dbPath, primaryUrl, libsql.WithAuthToken(authToken))
+	connector, err := libsql.NewEmbeddedReplicaConnector(dbPath, primaryUrl, libsql.WithAuthToken(authToken), libsql.WithSyncInterval(syncInterval))
 	if err != nil {
 		fmt.Println("Error creating connector", err)
 		os.Exit(1)
