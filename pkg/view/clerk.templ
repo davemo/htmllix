@@ -3,6 +3,7 @@ package view
 type ClerkEnv struct {
 	PublishableKey string
 	SecretKey string
+	PemPublicKey string
 	FrontendApi string
 }
 
@@ -22,9 +23,15 @@ script ClerkSdkSnippet(publishableKey string, frontendApi string) {
 }
 
 script SignIn() {
-    Clerk.openSignIn();
+    Clerk.openSignIn({
+        afterSignInUrl: '/home',
+        afterSignUpUrl: '/home',
+    });
 }
 
 script SignUp() {
-    Clerk.openSignUp();
+    Clerk.openSignUp({
+        afterSignInUrl: '/home',
+        afterSignUpUrl: '/home',
+    });
 }
