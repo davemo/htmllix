@@ -12,6 +12,7 @@ import (
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
+	"github.com/clerk/clerk-sdk-go/v2/session"
 	"github.com/davemo/htmllix/pkg/view"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -19,38 +20,48 @@ import (
 	"github.com/tursodatabase/go-libsql"
 )
 
+var ClerkJwk *clerk.JSONWebKey
+
 func ClerkAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sessionToken, err := c.Cookie("__session")
 		if err != nil || sessionToken.Value == "" {
-			fmt.Println("No Clerk session cookie found. Redirecting to /")
-			// logging all request headers
-			for name, headers := range c.Request().Header {
-				for _, h := range headers {
-					fmt.Printf("%v: %v\n", name, h)
-				}
-			}
+			// fmt.Println("No Clerk session cookie found. Redirecting to /")
+			// // logging all request headers
+			// for name, headers := range c.Request().Header {
+			// 	for _, h := range headers {
+			// 		fmt.Printf("%v: %v\n", name, h)
+			// 	}
+			// }
 			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 
-		pemPublicKey := os.Getenv("CLERK_PEM_PUBLIC_KEY")
-		jwk, err := clerk.JSONWebKeyFromPEM(pemPublicKey)
 		if err != nil {
-			fmt.Printf("error parsing public key: %v. Redirecting to /\n", err)
+			// fmt.Printf("error parsing public key: %v. Redirecting to /\n", err)
 			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 
 		claims, err := jwt.Verify(c.Request().Context(), &jwt.VerifyParams{
 			Token: sessionToken.Value,
-			JWK: jwk,
+			JWK: ClerkJwk,
 		})
 		if err != nil {
-			fmt.Printf("session token validation failed: %v. Redirecting to /\n", err)
+			// fmt.Printf("session token validation failed: %v. Redirecting to /\n", err)
 			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 
-		fmt.Printf("User with ID: %s is authenticated\n", claims.Subject)
+		// fmt.Printf("User with ID: %s is authenticated\n", claims.Subject)
+		// claimsJson, _ := json.MarshalIndent(claims, "", "  ")
+		// fmt.Printf("Claims: %s\n", claimsJson)
 		c.Set("claims", claims)
+		session, err := session.Get(c.Request().Context(), claims.SessionID)
+		if err != nil {
+			// fmt.Printf("error fetching session: %v. Redirecting to /\n", err)
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
+		}
+		// sessionJson, _ := json.MarshalIndent(session, "", "  ")
+		// fmt.Printf("Session: %s\n", sessionJson)
+		c.Set("session", session)
 		return next(c)
 	}
 }
@@ -70,8 +81,14 @@ func main() {
 		PublishableKey: os.Getenv("CLERK_PUBLISHABLE_KEY"),
 		FrontendApi: os.Getenv("CLERK_FRONTEND_API"),
 		SecretKey: os.Getenv("CLERK_SECRET_KEY"),
+		PemPublicKey: os.Getenv("CLERK_PEM_PUBLIC_KEY"),
 	}
 	clerk.SetKey(clerkEnv.SecretKey)
+	ClerkJwk, err = clerk.JSONWebKeyFromPEM(clerkEnv.PemPublicKey)
+	if err != nil {
+		fmt.Println("Error parsing public key", err)
+		os.Exit(1)
+	}
 
 	dir, err := os.MkdirTemp("", "libsql-*")
 	if err != nil {
@@ -94,23 +111,29 @@ func main() {
 	defer db.Close()
 
 	e := echo.New()
-	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	// 	AllowCredentials: true,
-	// 	AllowOrigins: []string{"*"},
-	// }))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowCredentials: true,
+		// AllowOrigins: []string{"*"},
+	}))
 	e.Use(middleware.Logger())
 	// e.Static("/public", "public")
 
 	e.GET("/", func(c echo.Context) error {
-		index := view.Index()
-		layout := view.Layout(index, clerkEnv)
-		return layout.Render(context.Background(), c.Response().Writer)
+		sessionToken, err := c.Cookie("__session")
+		if err != nil || sessionToken.Value == "" {
+			index := view.Index()
+			layout := view.Layout(index, clerkEnv, false)
+			return layout.Render(context.Background(), c.Response().Writer)
+		}
+
+		return c.Redirect(http.StatusTemporaryRedirect, "/home")
 	})
 
-	e.GET("/home", ClerkAuthMiddleware(func(e echo.Context) error {
+
+	e.GET("/home", ClerkAuthMiddleware(func(c echo.Context) error {
 		home := view.Home()
-		layout := view.Layout(home, clerkEnv)
-		return layout.Render(context.Background(), e.Response().Writer)
+		layout := view.Layout(home, clerkEnv, true)
+		return layout.Render(context.Background(), c.Response().Writer)
 	}))
 
 	e.Logger.Fatal(e.Start(serverPort))
